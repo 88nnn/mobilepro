@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>번호판 인식</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+        #result { margin-top: 20px; }
+        #image { max-width: 90%; height: auto; margin-top: 20px; }
+    </style>
+    <script>
+        function detectPlate() {
+            document.getElementById('status').textContent = '인식 중입니다...';
+            document.getElementById('result').innerHTML = ''; // 결과 초기화
+
+            fetch('/detect', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('status').textContent = '';
+                        const resultDiv = document.getElementById('result');
+                        
+                        // 인식된 이미지 표시
+                        const img = document.createElement('img');
+                        img.src = data.image_path;
+                        img.alt = 'Detected Plate';
+                        img.id = 'image';
+                        resultDiv.appendChild(img);
+
+                        // 인식된 텍스트 표시
+                        const textDiv = document.createElement('div');
+                        textDiv.textContent = '인식된 번호: ' + data.detected_text;
+                        textDiv.style.marginTop = '10px';
+                        textDiv.style.fontWeight = 'bold';
+                        resultDiv.appendChild(textDiv);
+                    } else {
+                        document.getElementById('status').textContent = '인식 실패: ' + data.message;
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('status').textContent = '에러 발생: ' + error;
+                });
+        }
+    </script>
+</head>
+<body>
+    <button onclick="detectPlate()">인식</button>
+    <div id="status" style="margin-top: 10px; font-weight: bold;"></div>
+    <div id="result"></div>
+</body>
+</html>
+
