@@ -11,6 +11,7 @@ db = SQLAlchemy(app)
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     car_type = db.Column(db.String(10))  # e.g., "Small", "Medium", "Large"
+    mail_address = db.Colum(db.string(30))
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)

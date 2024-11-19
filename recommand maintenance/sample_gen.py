@@ -1,3 +1,5 @@
+import usage_DB
+
 def generate_sample_data():
     users = [User(car_type=random.choice(["Small", "Medium", "Large"])) for _ in range(10)]
     products = [Product(name=f"Product {i}") for i in range(1, 6)]

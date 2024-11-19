@@ -1,3 +1,5 @@
+#html 화면과 연계해서 추천 상품에 강조 표시
+
 def get_highest_repurchase_product():
     return Product.query.order_by(Product.repurchase_count.desc()).first()
 
