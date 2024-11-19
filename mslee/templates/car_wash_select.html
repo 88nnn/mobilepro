@@ -1,0 +1,42 @@
+{#"""
+car_wash_select.html
+
+- 사용자가 세차장을 선택하는 화면
+- 예약 확인 버튼을 누르면 각각 세차장 1, 2, 3으로 이동
+
+2024-11-17
+이민수
+"""#}
+
+{% extends "base.html" %}
+{% block content %}
+
+  <section class="py-5 border-bottom" id="features">
+    <div class="container px-5 my-5">
+      <div class="row gx-5">
+        <div class="col-lg-4 mb-5 mb-lg-0">
+          <h2 class="h4 fw-bolder">세차장 1</h2>
+          <p>abcd</p>
+          <a class="text-decoration-none" href="/car_wash_reservation/1">
+            예약 확인
+          </a>
+        </div>
+        <div class="col-lg-4 mb-5 mb-lg-0">
+          <h2 class="h4 fw-bolder">세차장 2</h2>
+          <p>bcde</p>
+          <a class="text-decoration-none" href="/car_wash_reservation/2">
+            예약 확인
+          </a>
+        </div>
+        <div class="col-lg-4">
+          <h2 class="h4 fw-bolder">세차장 3</h2>
+          <p>efgh</p>
+          <a class="text-decoration-none" href="/car_wash_reservation/3">
+            예약 확인
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+{% endblock %}
