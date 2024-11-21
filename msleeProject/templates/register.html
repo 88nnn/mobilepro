@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2> 사용자 추가 </h2>
+  <form action="{{ url_for('register') }}" method="post">
+{#<div class="row g-3 align-items-center">#}
+{#  <div class="col-auto">#}
+{#    <label for="id" class="col-form-label">ID</label>#}
+{#  </div>#}
+{#  <div class="col-auto">#}
+{#    <input type="text" id="id" name = "id" class="form-control"#}
+{#           aria-describedby="idHelpInline">#}
+{#  </div>#}
+{#  <div class="col-auto">#}
+{#    <span id="idHelp" class="form-text">#}
+{#      8~20글자, 영문으로 입력하세요#}
+{#    </span>#}
+{#  </div>#}
+{#</div>#}
+{#  <br>#}
+
+  <div class="row g-3 align-items-center">
+  <div class="col-auto">
+    <label for="mail" class="col-form-label">e-mail</label>
+  </div>
+  <div class="col-auto">
+    <input type="email" id="mail" name = "mail" class="form-control"
+           aria-describedby="emailhelp">
+  </div>
+  <div class="col-auto">
+    <span id="mailHelp" class="form-text">
+      이메일을 입력하세요
+    </span>
+  </div>
+    <br>
+    <div class="row g-3 align-items-center">
+        <input type="submit" value="Register" class="btn btn-primary">
+    </div>
+</div>
+  </form>
+
+{% endblock %}
+
