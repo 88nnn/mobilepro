@@ -1,4 +1,8 @@
-import usage_DB
+from usage_DB import User, Product, Purchase
+from datetime import datetime
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+
 
 def generate_sample_data():
     users = [User(car_type=random.choice(["Small", "Medium", "Large"])) for _ in range(10)]

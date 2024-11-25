@@ -1,4 +1,9 @@
 #html 화면과 연계해서 추천 상품에 강조 표시
+from usage_DB import User, Product, Purchase
+from datetime import datetime
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+
 
 def get_highest_repurchase_product():
     return Product.query.order_by(Product.repurchase_count.desc()).first()
