@@ -8,55 +8,54 @@
 
 
 from flask import Flask, render_template, jsonify, request, session
-from flask_wtf import FlaskForm
-from flask import redirect
-from flask import url_for
-# from forms import ReservationForm
+from flask import redirect, url_for
 
 import os
 import json
-from usage_DB import db
+from usage_DB import db, User, Product, Purchase
 from datetime import datetime
+import random
+from datetime import datetime, timedelta
+import time
 
 app = Flask(__name__)
 
-""" 
-usage_DB.py내의 데이터베이스가
-recommendations.db라는 이름으로 database파일 아래에 생성됩니다.
-base_dir은 현재 디렉토리의 절대 경로입니다.
-
-- base_dir: 절대 경로
-- db_path: 데이터베이스 경로
-- app.config
-- SECRET KEY 
-
-작성자: 이민수
-2024-11-17
-"""
+# usage_DB.py내의 데이터베이스가
+# recommendations.db라는 이름으로 database파일 아래에 생성됩니다.
+# base_dir은 현재 디렉토리의 절대 경로입니다.
+#
+# - base_dir: 절대 경로
+# - db_path: 데이터베이스 경로
+# - app.config
+# - SECRET KEY
 base_dir = os.path.abspath(os.path.dirname(__file__))
 db_path = os.path.join(base_dir, './database/recommendations.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
 
-# 비지니스 로직이 끝날 때 Commit 실행(DB반영)
+# 로직이 끝날 때 Commit 실행(DB반영)
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 
-# 수정 사항에 대한 TRACK
+# 수정 사항 추적
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# SECRET_KEY
+# Load SECRET_KEY
 secret_file = os.path.join(base_dir, 'secret_json')  # secrets.json파일 위치를 명시
 with open(secret_file) as f:
-    secrets = json.loads(f.read())['SECRET_KEY']
-app.config['SECRET_KEY'] = secrets
-# app.config['SECRET_KEY'] = 'SECRET_KEY_ABC'
+    secrets = json.loads(f.read())
+app.config['SECRET_KEY'] = secrets['SECRET_KEY']
 
 db.init_app(app)
 
 
+# def home()
+#  - 세차장 기본 화면 /car_wash_select로 이동한다.
 @app.route("/")
 def home():
-    return render_template('home.html')
+    return redirect(url_for("car_wash_select"))
 
+
+# def car_wash_select()
+#  - 세차장 기본 화면을 렌더링한다.
 
 @app.route("/car_wash_select")
 def car_wash_select():
@@ -64,13 +63,15 @@ def car_wash_select():
 
 
 car_wash_status = {
-    1: {"waiting_count": 10, "wait_time": 15},
-    2: {"waiting_count": 20, "wait_time": 30},
-    3: {"waiting_count": 30, "wait_time": 45}
+    1: {"waiting_count": 0, "wait_time": 0},
+    2: {"waiting_count": 0, "wait_time": 0},
+    3: {"waiting_count": 0, "wait_time": 0}
 
 }
 
 
+# car_wash(car_wash_id)
+#  - car_wash_id를 받아서 각각 세차장 1, 2, 3 화면을 띄워준다.
 @app.route("/car_wash_reservation/<int:car_wash_id>")
 def car_wash(car_wash_id):
     if car_wash_id in car_wash_status:
@@ -107,64 +108,48 @@ def reserve_car_wash():
                                    "wait_time"],
                                car_wash_id=car_wash_id)
 
-    # # db에 정보 삽입
+
+# user 등록
+# 메일을 받고, 아이디는 시간을 초단위로 계산해서 user_id로 사용함
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        user_id = int(time.time())
+        user_mail = request.form['mail']
+
+        # POST 데이터 확인
+        print("id ", user_id)
+        print("mail: ", user_mail)
+
+        new_user = User(id=user_id,
+                        mail=user_mail
+                        )
+        db.session.add(new_user)
+
+        db.session.commit()
+        # response = {
+        #     'status': 'success',
+        #     'message': 'User created successfully.',
+        #     'user_id': user_id
+        # }
+        # return jsonify(response), 201
+        return render_template('registration_complete.html')
+    return render_template('register.html')
 
 
-# @app.route('/insert', methods=['POST'])
-# def insert():
-#     # db
-#     return
-
-
-# # 예약자 추가
-# @app.route("/reservationabc", methods=['GET', 'POST'])
-# def Reservation_add():
-#     form = ReservationForm()
-#     if form.validate_on_submit():
-#         # 메일이나 아이디나 그런거 받아올거 아래에 적을것
-#         # 그냥 아이디만 받아와서 조회해도 될 듯
-#         abc = request.form['abc']
-#         # 이거 근데 시간을 어떤식으로 리턴하는건지 모르겠네
-#         date = datetime.today()
-#
-#         # 그다음에 삽입하는 코드
-#
-#         return redirect(url_for('reservation_complete'))
-#     return render_template('home.html')
-
-# 로그인 페이지
-@app.route('/signup')
-def signup():
-    return render_template('signup.html')
-
-
-# 예약 페이지
-@app.route('/car_wash_reservation', methods=['POST'])
-def car_wash_reservation():
-    # 세차장 예약 로직
-    return render_template('car_wash_reservation_NOT_USE.html')
-
-
-# 대기자 확인 페이지
-@app.route('/waitlist')
-def waitlist():
-    return render_template('waitlist.html')
-
-
-# 예약 완료
-@app.route('/reservation/complete')
-def reservation_complete():
-    return render_template('reservation_complete.html')
-
-
-# 예약 실패
-@app.route('/reservation/failed')
-def reservation_failed():
-    return render_template('reservation_failed.html')
+@app.route('/registration_complete')
+def registration_complete():
+    return """<script>
+    	window.location = document.referrer;
+    	</script>"""
 
 
 if __name__ == '__main__':
     # 데베 생성
-    with app.app_context():
-        db.create_all()
+    try:
+        with app.app_context():
+            db.create_all()
+            print("Database initialized")
+    except Exception as e:
+        print(f"Failed to initailize the database{e}")
     app.run(debug=True)

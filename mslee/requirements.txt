@@ -1,2 +1,0 @@
-pip install flask flask-wtf
-pip install Flask-SQLAlchemy
