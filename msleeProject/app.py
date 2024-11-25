@@ -12,10 +12,8 @@ from flask import redirect, url_for
 
 import os
 import json
-from usage_DB import db, User, Product, Purchase
-from datetime import datetime
-import random
-from datetime import datetime, timedelta
+from usage_DB import db, User, CAR_WASH_MODELS
+
 import time
 
 app = Flask(__name__)
@@ -32,14 +30,11 @@ base_dir = os.path.abspath(os.path.dirname(__file__))
 db_path = os.path.join(base_dir, './database/recommendations.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
 
-# 로직이 끝날 때 Commit 실행(DB반영)
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 
-# 수정 사항 추적
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Load SECRET_KEY
-secret_file = os.path.join(base_dir, 'secret_json')  # secrets.json파일 위치를 명시
+secret_file = os.path.join(base_dir, 'secret_json')
 with open(secret_file) as f:
     secrets = json.loads(f.read())
 app.config['SECRET_KEY'] = secrets['SECRET_KEY']
@@ -70,69 +65,27 @@ car_wash_status = {
 }
 
 
-# car_wash(car_wash_id)
-#  - car_wash_id를 받아서 각각 세차장 1, 2, 3 화면을 띄워준다.
-@app.route("/car_wash_reservation/<int:car_wash_id>")
-def car_wash(car_wash_id):
-    if car_wash_id in car_wash_status:
-        car_wash = car_wash_status[car_wash_id]
-        return render_template("car_wash.html",
-                               waiting_count=car_wash["waiting_count"],
-                               wait_time=car_wash["wait_time"],
-                               car_wash_id=car_wash_id)
-    else:
-        return "세차장 정보가 없습니다.", 404
-
-
-@app.route('/reserve_car_wash', methods=['POST'])
-def reserve_car_wash():
-    car_wash_id = int(request.form.get('car_wash_id'))
-    if car_wash_id in car_wash_status:
-        reservation_status = f"세차장 {car_wash_id} 예약이 완료되었습니다! "
-        car_wash = car_wash_status[int(car_wash_id)]
-        car_wash["waiting_count"] += 1
-        car_wash["wait_time"] += 5
-        return render_template('car_wash.html',
-                               reservation_status=reservation_status,
-                               waiting_count=car_wash_status[int(car_wash_id)][
-                                   "waiting_count"],
-                               wait_time=car_wash_status[int(car_wash_id)][
-                                   "wait_time"],
-                               car_wash_id=car_wash_id)
-    else:
-        return render_template("car_wash.html",
-                               reservation_status="예약 실패",
-                               waiting_count=car_wash_status[int(car_wash_id)]
-                               ["waiting_count"],
-                               wait_time=car_wash_status[int(car_wash_id)][
-                                   "wait_time"],
-                               car_wash_id=car_wash_id)
-
+def get_waiting_info(car_wash_id):
+    car_wash_model = CAR_WASH_MODELS.get(car_wash_id)
+    if not car_wash_model:
+        return {"waiting_count": 0, "wait_time": 0}
+    waiting_count = db.session.query(car_wash_model).count()
+    wait_time = waiting_count * 10  # 한 사람당 대기 시간 10분으로 계산
+    return {"waiting_count": waiting_count, "wait_time": wait_time}
 
 # user 등록
-# 메일을 받고, 아이디는 시간을 초단위로 계산해서 user_id로 사용함
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         user_id = int(time.time())
         user_mail = request.form['mail']
 
-        # POST 데이터 확인
-        print("id ", user_id)
-        print("mail: ", user_mail)
-
         new_user = User(id=user_id,
                         mail=user_mail
                         )
+        session['user_mail'] = user_mail
         db.session.add(new_user)
-
         db.session.commit()
-        # response = {
-        #     'status': 'success',
-        #     'message': 'User created successfully.',
-        #     'user_id': user_id
-        # }
-        # return jsonify(response), 201
         return render_template('registration_complete.html')
     return render_template('register.html')
 
@@ -143,6 +96,69 @@ def registration_complete():
     	window.location = document.referrer;
     	</script>"""
 
+
+@app.route('/logout')
+def logout():
+    session.pop('user_mail', None)  # 세션에서 이메일 제거
+    return render_template("logout.html")
+
+
+@app.route("/update_waiting_info", methods=["POST"])
+def update_waiting_info():
+    car_wash_id = int(request.form.get("car_wash_id"))
+
+    info = get_waiting_info(car_wash_id)
+
+    response = {
+        "success": True,
+        "waiting_count": info["waiting_count"],
+        "wait_time": info["wait_time"]
+    }
+
+    return jsonify(response)
+
+# car_wash(car_wash_id)
+@app.route('/car_wash_reservation/<int:car_wash_id>', methods=['GET', 'POST'])
+@app.route('/car_wash/<int:car_wash_id>', methods=['GET', 'POST'])
+def car_wash_reservation(car_wash_id):
+    car_wash_model = CAR_WASH_MODELS.get(car_wash_id)
+    if not car_wash_model:
+        return "세차장 정보가 없습니다.", 404
+
+    if request.method == 'POST':
+        if 'user_mail' in session:
+            email = session['user_mail']
+            new_reservation = car_wash_model(user_mail=email)
+            db.session.add(new_reservation)
+            db.session.commit()
+            print(f"세차장 {car_wash_id} 예약완료")
+            reservation_status = f"세차장 {car_wash_id} 예약이 완료되었습니다!"
+            return redirect(url_for('reservation_complete'))
+        else:
+            reservation_status = "로그인이 필요합니다."
+    else:
+        reservation_status = None
+
+    waiting_info = get_waiting_info(car_wash_id)
+
+    reservations = (db.session.query(car_wash_model.user_mail,
+                                     car_wash_model.reservation_date).all())
+    # reservations = (db.session.query(car_wash_model, User)
+    #                 .join(User, car_wash_model.user_mail == User.mail)
+    #                 .add_columns(car_wash_model.reservation_date, User.mail)
+    #                 .all())
+
+    return render_template("car_wash.html",
+                           waiting_count=waiting_info["waiting_count"],
+                           wait_time=waiting_info["wait_time"],
+                           car_wash_id=car_wash_id,
+                           reservations=reservations,
+                           reservation_status=reservation_status)
+
+# 예약 완료 페이지
+@app.route('/reservation_complete')
+def reservation_complete():
+    return render_template('reservation_complete.html')
 
 if __name__ == '__main__':
     # 데베 생성

@@ -1,10 +1,5 @@
 <!-- base.html -->
-<!--
-다른 html파일들에서 불러와서 사용합니다.
-
-작성자: 이민수
-2024-11-16
--->
+<!-- html파일들에서 불러와서 사용합니다. -->
 
 <!doctype html>
 <html lang="ko">
@@ -31,7 +26,10 @@
   <h3>세차장 예약 시스템</h3>
   <hr>
 </header>
-
+  {% if session.user_mail %}
+  <span class="nav-link">환영합니다, {{ session.user_mail }}</span>
+  {%  endif %}
+<hr>
 {% include "nav.html" %}
 {% block content %}
 {% endblock %}

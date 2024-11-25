@@ -3,8 +3,8 @@
 {% block content %}
 
   <body onload="javascript:onload()">
-    예약 완료!
-    잠시 후 세차장 페이지로 이동합니다.
+    로그아웃 완료!
+    잠시 후 사용자 등록 페이지로 이동합니다.
 
 
   <script language="javascript">
@@ -12,9 +12,8 @@
       setTimeout('go_car_wash_select()', 3000)
     }
     function go_car_wash_select() {
-      location.href = "{{ url_for('car_wash_select') }}";
+      location.href = "register";
     }
   </script>
   </body>
-
 {% endblock %}
