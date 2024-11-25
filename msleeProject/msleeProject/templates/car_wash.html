@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  <h2>세차장 {{ car_wash_id }} </h2> <hr>
+    {% if reservation_status %}
+    <p>{{ reservation_status }}</p>
+  {% endif %}
+  <div>
+    <h5>대기자 수: <span id="waiting_count">{{ waiting_count }}</span>명</h5>
+    <h5>예상 대기시간: <span id="wait_time">{{ wait_time }}</span>분</h5>
+  </div>
+  <form action="{{ url_for('car_wash_reservation', car_wash_id=car_wash_id)}}"
+        method="POST">
+{#    <input type="hidden" name="car_wash_id" value="{{ car_wash_id }}">#}
+    <button type="submit" >예약하기</button>
+  </form>
+  <br>
+
+  <br>
+  <h4>예약자 목록</h4><hr>
+  <ul>
+    {% for reservation in reservations %}
+    <li>{{ reservation.user_mail }} - {{ reservation.reservation_date.strftime
+    ('%Y-%m-%d %H:%M:%S') }}</li>
+    {% endfor %}
+  </ul>
+
+
+  <script>
+
+    function updateWaitingInfo(carWashId) {
+        fetch('/update_waiting_info', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                'car_wash_id': carWashId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('waiting_count').textContent = data.waiting_count;
+                document.getElementById('wait_time').textContent = data.wait_time;
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    setInterval(function() {
+        const carWashId = "{{ car_wash_id }}";
+        updateWaitingInfo(carWashId);
+    }, 5000);  // 5초마다 대기자 정보 업데이트
+</script>
+
+{% endblock %}
