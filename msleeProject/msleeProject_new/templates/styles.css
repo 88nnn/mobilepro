@@ -1,0 +1,74 @@
+/* Basic styling */
+body {
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    width: 90%;
+    max-width: 400px;
+    background-color: #ffffff;
+    padding: 20px;
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.guide-text {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.product-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.product-item {
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    border: 1px solid #ddd;
+}
+
+.product-item span {
+    font-size: 12px;
+    color: #666;
+}
+
+.blue-dashed {
+    border: 2px dashed blue;
+}
+
+.blue-solid {
+    border: 2px solid blue;
+}
+
+.black-dashed {
+    border: 2px dashed black;
+}
+
+.black-solid {
+    border: 2px solid black;
+}
+
+.selected {
+    background-color: #e0f7fa;
+}
+
+.btn {
+    padding: 10px;
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    width: 100%;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+.btn.blue {
+    background-color: #007bff;
+}

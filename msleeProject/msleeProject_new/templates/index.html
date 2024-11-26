@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>번호판 인식</title>
+    <style>
+        .container {
+            text-align: center;
+        }
+        #video {
+            width: 80%;
+            max-width: 600px;
+        }
+        .button-container {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .failure-message {
+            color: red;
+            font-size: 20px;
+            margin-top: 20px;
+        }
+        .success-message {
+            color: green;
+            font-size: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>번호판 인식</h1>
+
+        <!-- 카메라 뷰 -->
+        <img id="video" src="{{ url_for('video_feed') }}" alt="Video Feed">
+
+        <!-- 인식 버튼 -->
+        <div class="button-container">
+            <button id="recognize-btn">번호판 인식</button>
+        </div>
+
+        <!-- 결과 메시지 -->
+        <div id="result-message">
+            {% if result %}
+                {% if result == 'success' %}
+                    <p class="success-message">번호판 인식 성공: {{ plate }}</p>
+                    <button onclick="window.location.href='/product_selection'">상품 선택 화면</button>
+                {% else %}
+                    <p class="failure-message">번호판 인식 실패. 다시 시도해주세요.</p>
+                    <button onclick="location.href='/retry'">재시도</button>
+                    <button onclick="location.href='/contact_support'">고객센터 문의</button>
+                {% endif %}
+            {% else %}
+                <p>실시간 번호판 인식을 시작합니다.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // 인식 버튼 클릭 시 AJAX 요청 보내기
+        document.getElementById("recognize-btn").addEventListener("click", function() {
+            fetch('/recognize', {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result === 'success') {
+                    document.getElementById("result-message").innerHTML = `
+                        <p class="success-message">번호판 인식 성공: ${data.plate}</p>
+                        <button onclick="window.location.href='/product_selection'">상품 선택 화면</button>
+                    `;
+                } else {
+                    document.getElementById("result-message").innerHTML = `
+                        <p class="failure-message">번호판 인식 실패. 다시 시도해주세요.</p>
+                        <button onclick="location.href='/retry'">재시도</button>
+                        <button onclick="location.href='/contact_support'">고객센터 문의</button>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
