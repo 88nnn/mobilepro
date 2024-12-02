@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결제 내역</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .total-cost {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .usage-details .usage-item {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .payment-methods {
+            margin-top: 20px;
+        }
+
+        .payment-method {
+            padding: 10px;
+            margin: 10px 0;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            transition: background-color 0.2s;
+        }
+
+        .payment-method:hover {
+            background-color: #e6f7ff;
+        }
+
+        .confirm-payment {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .payment-service-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .payment-service-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 총액 -->
+        <div id="totalCost" class="total-cost">총계: 0원</div>
+
+        <!-- 사용 내역 -->
+        <div id="usageDetails" class="usage-details">
+            <!-- 사용 내역이 여기에 추가됩니다 -->
+        </div>
+
+        <!-- 결제 수단 선택 -->
+        <div class="payment-methods">
+            <h3>결제 수단 선택</h3>
+            <div class="payment-method" data-method="card">카드 결제</div>
+            <div class="payment-method" data-method="transfer">계좌이체</div>
+            <div class="payment-method" data-method="easy">간편결제</div>
+        </div>
+
+        <!-- 결제 진행 버튼 -->
+        <div class="confirm-payment">
+            <button id="paymentButton" class="payment-service-btn" disabled>결제하기</button>
+        </div>
+    </div>
+
+    <script>
+        const userId = 1; // 사용자 ID (예: 1)
+        let selectedPaymentMethod = null;
+
+        // 사용 내역을 가져오는 함수
+        function fetchUsageDetails() {
+            fetch(`http://127.0.0.1:5000/api/usage/${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const usageDetailsContainer = document.getElementById('usageDetails');
+                    const totalCostContainer = document.getElementById('totalCost');
+                    usageDetailsContainer.innerHTML = ''; // 기존 내용 초기화
+                    let totalCost = data.total_cost;
+
+                    // 사용 내역 추가
+                    data.usage_details.forEach(detail => {
+                        const usageItem = document.createElement('div');
+                        usageItem.classList.add('usage-item');
+                        usageItem.innerHTML = `
+                            <div>${detail.product_name} ${detail.duration_seconds}초</div>
+                            <div>${detail.cost}원</div>
+                        `;
+                        usageDetailsContainer.appendChild(usageItem);
+                    });
+
+                    // 총계 표시
+                    totalCostContainer.textContent = `총계: ${totalCost}원`;
+                })
+                .catch(error => {
+                    console.error('오류가 발생했습니다:', error);
+                });
+        }
+
+        // 결제 수단 선택 이벤트
+        document.querySelectorAll('.payment-method').forEach(method => {
+            method.addEventListener('click', function () {
+                // 선택된 결제 수단 강조 표시
+                document.querySelectorAll('.payment-method').forEach(m => m.style.backgroundColor = '#f9f9f9');
+                this.style.backgroundColor = '#e6f7ff';
+
+                // 선택한 결제 수단 저장
+                selectedPaymentMethod = this.dataset.method;
+
+                // 결제 버튼 활성화
+                const paymentButton = document.getElementById('paymentButton');
+                paymentButton.disabled = false;
+            });
+        });
+
+        // 결제 버튼 클릭 이벤트
+        document.getElementById('paymentButton').addEventListener('click', function () {
+            if (!selectedPaymentMethod) {
+                alert('결제 수단을 선택하세요.');
+                return;
+            }
+
+            // 결제 처리 (여기서는 간단히 알림으로 처리)
+            alert(`결제가 완료되었습니다! (${selectedPaymentMethod})`);
+
+            // 이후 실제 결제 처리 로직 추가 가능
+        });
+
+        // 페이지 로드 시 사용 내역 불러오기
+        document.addEventListener('DOMContentLoaded', fetchUsageDetails);
+    </script>
+</body>
+</html>
