@@ -1,10 +1,10 @@
 from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
-from usage_DB import User, Product, Purchase
-from app import db
+from mainProject.db.usage_DB import Product, Purchase
+from app2 import db
 
 app = Flask(__name__)
+
+
 
 # API 사용내역 갱신 API
 @app.route('/api/usage/<int:user_id>', methods=['GET'])
@@ -60,3 +60,4 @@ def save_purchase():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+

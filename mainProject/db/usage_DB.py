@@ -1,16 +1,12 @@
 from datetime import datetime
-
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///recommendations.db'
-db = SQLAlchemy(app)
+import init
 
 # Models
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True) #일련번호 랜덤부여
-    car_type = db.Column(db.String(10))  # e.g., "Small", "Medium", "Large"
+    car_type = db.Column(db.String(10))
     mail_address = db.Colum(db.string(30))
 
 class Product(db.Model):

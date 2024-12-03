@@ -1,8 +1,7 @@
 #html 화면과 연계해서 추천 상품에 강조 표시
-from usage_DB import User, Product, Purchase
-from datetime import datetime
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+from mainProject.db.usage_DB import User, Product, Purchase
+from datetime import datetime, timedelta
+from init import db
 
 
 def get_highest_repurchase_product():

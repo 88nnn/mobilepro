@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>옵션 선택</title>
-    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
@@ -17,13 +16,19 @@
         <button class="btn blue" onclick="confirmSelection()">선택 완료</button>
     </div>
     <script>
-            const Products = [
-            {product: "진공청소기: ", description: "분당 100원"},
-            {product: "보통 수압: ", description: "분당 400원"},
-            {product: "고수압: ", description: "분당 500원"},
-            {product: "에어건: ", description: "분당 100원"},
-            {product: "폼건: ", description: "분당 700원"},
-            {product: "거품솔 별도 대여: ", description: "분당 200원"}
+        // 서버에서 user_id를 가져오는 함수
+        async function fetchUserId() {
+             const response = await fetch('/api/get_user_id');
+             const data = await response.json();
+             return data.user_id;
+        }
+        const Products = [
+            {product: "진공청소기: ", description: "분당 120원"},
+            {product: "보통 수압: ", description: "분당 420원"},
+            {product: "고수압: ", description: "분당 480원"},
+            {product: "에어건: ", description: "분당 120원"},
+            {product: "폼건: ", description: "분당 600원"},
+            {product: "거품솔 별도 대여: ", description: "분당 180원"}
         ]
         const productListElement = document.getElementById('productList');
 
@@ -46,9 +51,7 @@
         function selectProduct(product) {
             selectedProduct = product;
             // 선택된 상품 표시
-            Array.from(document.querySelectorAll('.product-item')).forEach((item) => {
-                item.classList.remove('selected');
-            });
+            document.querySelectorAll(".product-item").forEach((item) => item.classList.remove("selected"));
             event.currentTarget.classList.add('selected');
         }
 
