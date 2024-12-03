@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사용 내역</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>사용 내역</h1>
+        <div id="usageDetails" class="usage-details">
+            <!-- 사용 내역이 여기 표시됩니다 -->
+        </div>
+        <div id="totalCost" class="total-cost">총계: 0원</div>
+        <div class="container center">
+            <button class="payment-service-btn" onclick="confirmPaymentService()">결제하기</button>
+        </div>
+    </div>
+
+    <script>
+        {#const userId = 1; // 사용자 ID (예: 1)#}
+       const userId = localStorage.getItem("userId");
+
+        function fetchUsageDetails() {
+            fetch(`http://127.0.0.1:5000/api/usage/${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const usageDetailsContainer = document.getElementById('usageDetails');
+                    usageDetailsContainer.innerHTML = ''; // 기존 내용 초기화
+                    let totalCost = data.total_cost;
+
+                    data.usage_details.forEach(detail => {
+                        const usageItem = document.createElement('div');
+                        usageItem.classList.add('usage-item');
+                        usageItem.innerHTML = `
+                            <div>${detail.product_name} ${detail.duration_seconds}초</div>
+                            <div>지출내역: ${detail.cost}원</div>
+                        `;
+                        usageDetailsContainer.appendChild(usageItem);
+                    });
+
+                    document.getElementById('totalCost').textContent = `총계: ${totalCost}원`;
+                })
+                .catch(error => {
+                    console.error('오류가 발생했습니다:', error);
+                });
+        }
+
+        function confirmPaymentService() {
+            window.location.href = "payment_service";
+        }
+
+        // 페이지 로드 시 사용 내역 불러오기
+        document.addEventListener('DOMContentLoaded', fetchUsageDetails);
+    </script>
+</body>
+</html>

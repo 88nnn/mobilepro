@@ -1,0 +1,43 @@
+<nav class="navbar navbar-dark bg-dark fixed-top">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">코인 세차장</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas"
+            data-bs-target="#offcanvasDarkNavbar"
+            aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1"
+         id="offcanvasDarkNavbar" aria-labelledby="offcanvasDarkNavbarLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasDarkNavbarLabel">메뉴</h5>
+        <button type="button" class="btn-close btn-close-white"
+                data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+        <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="/">홈</a>
+          </li>
+          {% if session.user_mail %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('logout') }}">로그아웃</a>
+            </li>
+          {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('register') }}">사용자 등록</a>
+            </li>
+          {% endif %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('index') }}">바로 예약하기</a>
+          </li>
+
+        </ul>
+{#        <form class="d-flex mt-3" role="search">#}
+{#          <input class="form-control me-2" type="search" placeholder="Search"#}
+{#                 aria-label="Search">#}
+{#          <button class="btn btn-success" type="submit">Search</button>#}
+{#        </form>#}
+      </div>
+    </div>
+  </div>
+</nav>
