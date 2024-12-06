@@ -17,6 +17,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     mail_address= db.Column(db.String(50), unique=True, nullable=False)
     car_type = db.Column(db.String(10), unique=False, nullable=True)  # e.g.,
+    user_plate = db.Column(db.String(20), unique=False, nullable=True)
     # "Small", "Medium",
     # "Large"
 

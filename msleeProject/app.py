@@ -1,10 +1,3 @@
-# 세차창 예약 화면(UI-A-001, UI-A-002)
-#
-# 10w 세차장 목록 및 대기자 수 표시 구현
-#
-# 11w 세차장 예약 후 예약 정보와 예상 대기 시간 표시
-#
-# 12w 대기자 정보 업데이트 기능 추가
 from flask import Flask, render_template, session, jsonify, request, redirect, \
     url_for, Response
 from flask_sqlalchemy import SQLAlchemy
@@ -19,7 +12,7 @@ import numpy as np
 
 import time
 from sample_gen import generate_sample_data
-
+from datetime import datetime, timedelta
 app = Flask(__name__)
 
 # usage_DB.py내의 데이터베이스가
@@ -91,21 +84,46 @@ def get_waiting_info(car_wash_id):
     wait_time = waiting_count * 10  # 한 사람당 대기 시간 10분으로 계산
     return {"waiting_count": waiting_count, "wait_time": wait_time}
 
+# def get_waiting_info(car_wash_id):
+#     car_wash_model = CAR_WASH_MODELS.get(car_wash_id)
+#     if not car_wash_model:
+#         return {"waiting_count": 0, "wait_time": 0}
+#     waiting_count = db.session.query(car_wash_model).count()
+#     wait_time = 0
+#     reservations = db.session.query(car_wash_model.id).all()
+#     for id, in reservations:
+#         user = User.query.filter_by(id = id).first()
+#         if user:
+#             if user.car_type == 'small':
+#                 wait_time += 5
+#             elif user.car_type == 'medium':
+#                 wait_time += 10
+#             elif user.car_type == 'large':
+#                 wait_time += 15
+#             else:
+#                 wait_time+= 10
+#     return {"waiting_count": waiting_count, "wait_time": wait_time}
 
 # user 등록
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         user_id = int(time.time())
+
         user_mail = request.form['mail']
-        # new_user = User(id=user_id,
-        #                 mail_address=user_mail
-        #                 )
-        session['user_id'] = user_id
-        session['user_mail'] = user_mail
-        # db.session.add(new_user)
-        # db.session.commit()
-        return render_template('registration_complete.html')
+        user_plate = request.form['registerPlate']
+        user = User.query.filter_by(id=user_id).first()
+        if not user:  # 유저가 없을 경우에만 새 유저 생성
+            new_user = User(id=user_id,
+                            mail_address=user_mail,
+                            user_plate=user_plate
+                            )
+            session['user_id'] = user_id
+            session['user_mail'] = user_mail
+            session['user_plate'] = user_plate
+            db.session.add(new_user)
+            db.session.commit()
+            return render_template('registration_complete.html')
     return render_template('register.html')
 
 
@@ -142,24 +160,12 @@ def update_waiting_info():
 
 
 def save_reservation(car_wash_model, email):
-    new_reservation = car_wash_model(user_mail=email)
+    now = datetime.utcnow() + timedelta(hours=9)
+
+    new_reservation = car_wash_model(user_mail=email,
+                                     reservation_date=now)
     db.session.add(new_reservation)
     db.session.commit()
-
-
-# @app.route('/car_wash_reservation_new/<int:car_wash_id>', methods=['GET',
-#                                                                    'POST'])
-# def car_wash_reservation_new(car_wash_id):
-#     car_wash_model = CAR_WASH_MODELS.get(car_wash_id)
-#     if not car_wash_model:
-#         return "세차장 정보가 없습니다.", 404
-#     if request.method == 'POST':
-#         email = session.get('user_mail')
-#         save_reservation(car_wash_model, email)
-#         session['reserved_car_wash_id'] = car_wash_id
-#         return ("예약 완료")
-#     else:
-#        "carwashreservationnew오류"
 
 # car_wash(car_wash_id)
 @app.route('/car_wash_reservation/<int:car_wash_id>', methods=['GET', 'POST'])
@@ -172,14 +178,9 @@ def car_wash_reservation(car_wash_id):
     if request.method == 'POST':
         if 'user_mail' in session:
             email = session['user_mail']
-            # save_reservations(car_wash_model, email)
-            # new_reservation = car_wash_model(user_mail=email)
-            # db.session.add(new_reservation)
-            # db.session.commit()
-
             session['reserved_car_wash_id'] = car_wash_id
             print(f"세차장 {car_wash_id} 예약완료")
-            reservation_status = f"세차장 {car_wash_id} 예약이 완료되었습니다!"
+            # reservation_status = f"세차장 {car_wash_id} 예약이 완료되었습니다!"
             return redirect(url_for('reservation_complete'))
         else:
             reservation_status = "로그인이 필요합니다."
@@ -203,27 +204,6 @@ def car_wash_reservation(car_wash_id):
 @app.route('/reservation_complete')
 def reservation_complete():
     return render_template('reservation_complete.html')
-
-
-# 차 기종 따로 추가
-@app.route('/update_car_type', methods=['GET', 'POST'])
-def update_car_type():
-    if 'user_mail' not in session:
-        return redirect(url_for('login'))
-
-    if request.method == 'POST':
-        # 현재 세션의 user_mail을 가져와서
-        # car_type이랑 같이 user_mail이 같은 User에 저장
-        car_type = request.form['car_type']
-        user_mail = session['user_mail']
-        user = User.query.filter_by(mail_address=user_mail).first()
-        if user:
-            user.car_type = car_type
-            db.session.commit()
-            return redirect(
-                url_for('다른 팀원 페이지 or 예약 완료 페이지'))  # 업데이트 후 세차장 선택 페이지로 리디렉션
-
-    return render_template('update_car_type.html')
 
 
 ##############################################
@@ -269,30 +249,20 @@ def save_purchase():
         is_repeat = Purchase.query.filter_by(user_id=user_id,
                                              product_id=product_id).count() > 0
 
-##############
-        # 세션에서 user_mail, car_type, user_id를 가져와서 UserDB에 추가
+        ##############
         user_mail = session.get('user_mail')
-        car_type = session.get('car_type')
-        # user db를 데베에 저장 (이민수)
-        user = User.query.get(user_id)
-        if not user:  # 유저가 없을 경우에만 새 유저 생성
-             new_user = User(id=user_id, mail_address=user_mail,
-                        car_type=car_type)
-             db.session.add(new_user)
-             db.session.commit()
-
         # 세션에서 car_wash_id도 가져와서 carwashDB에 추가
         # 홈화면으로 돌아가면 대기자가 갱신되어있음
         car_wash_id = session.get('reserved_car_wash_id')
         car_wash_model = CAR_WASH_MODELS.get(car_wash_id)
+
         save_reservation(car_wash_model, user_mail)
-        # db.session.add()
-        # Save the purchase to the database
+
         new_purchase = Purchase(user_id=user_id, product_id=product_id,
                                 is_repeat=is_repeat)
         db.session.add(new_purchase)
         db.session.commit()
-##############
+        ##############
         # 구매횟수와 재구매횟수를 갱신
         product = Product.query.get(product_id)
         if product:
@@ -380,6 +350,7 @@ def gen_frames():
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
+
 # 기본 페이지 (스트리밍 페이지)
 @app.route('/index.html')
 def index():
@@ -399,8 +370,11 @@ def recognize():
     ################################## 확인용 #####################
     ################################수정하실 때 주석처리하세요########
     text = '1234가나다'
-    session['user_plate'] = text
-    return jsonify({'result': 'success', 'plate': text})
+    registered_plate = session.get('user_plate', None)
+    if registered_plate == text:
+        return jsonify({'result': 'success', 'plate': text})
+    # else:
+
     ##########################################################
     ##################################################
     ret, frame = cap.read()
@@ -410,11 +384,26 @@ def recognize():
     # 번호판 인식
     text = process_frame(frame)
     if text:
-        # session['user_plate'] = text
         return jsonify({'result': 'success', 'plate': text})
     else:
         return jsonify({'result': 'failure'})
 
+
+# # 번호판 인식 버튼 클릭 시22222222222222222222222222222222222222
+# @app.route('/recognize', methods=['POST'])
+# def recognize():
+#     ret, frame = cap.read()
+#     if not ret:
+#         return jsonify({'result': 'failure'})
+#
+#     # 번호판 인식
+#     text = process_frame(frame)
+#     if text:
+#         registered_plate = session.get('user_plate', None)
+#         if registered_plate == text:
+#             return jsonify({'result': 'success', 'plate': text})
+#     else:
+#         return jsonify({'result': 'failure'})
 
 # 재시도 페이지 (번호판 인식 실패 시)
 @app.route('/retry', methods=['GET'])
@@ -427,6 +416,7 @@ def retry():
 def contact():
     return render_template('contact.html')
 
+
 #########################################
 
 #########################################
@@ -438,9 +428,6 @@ def product_selection():
 
 @app.route('/option_selection', methods=['GET'])
 def option_selection():
-    # selected_product_id = session.get('selected_product_id', None)
-    # return render_template('option_selection.html',
-    #                        selected_product_id=selected_product_id)
     return render_template('option_selection.html')
 
 
@@ -476,14 +463,10 @@ def usage_summary():
 
 
 if __name__ == '__main__':
-    # 데베 생성
     try:
         with app.app_context():
             db.create_all()
             print("Database initialized")
-            # generate_sample_data()
-            # print("Sample data generated")
     except Exception as e:
         print(f"Failed to initailize the database{e}")
-    # app.run(debug=True)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=8000, debug=True)

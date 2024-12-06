@@ -61,7 +61,7 @@
         if (confirm("구매 정보가 저장되었습니다!")) {
             // 구매 데이터를 서버로 전송
             {#selectedProducts.forEach(product => {#}
-            fetch('http://127.0.0.1:5000/api/save_purchase', {
+            fetch('http://localhost:8000/api/save_purchase', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
