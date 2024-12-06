@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품 선택</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .container {
+            text-align: center;
+            margin: 20px;
+        }
+        .guide-text {
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .product-item {
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid gray;
+            cursor: pointer;
+        }
+        .selected {
+            border: 2px solid red;
+        }
+        .blue-dashed { border: 2px dashed blue; }
+        .blue-solid { border: 2px solid blue; }
+        .black-dashed { border: 2px dashed black; }
+        .black-solid { border: 2px solid black; }
+        .btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: blue;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <p class="guide-text">상품을 선택하세요. (직접 조정도 가능합니다.)</p>
+
+        <div id="recommendedProducts" class="product-list"></div>
+
+        <div id="productList" class="product-list"></div>
+
+        <button class="btn" onclick="confirmSelection()">선택 완료</button>
+    </div>
+
+    <script>
+        {#const userId = 1; // 사용자 ID (테스트용)#}
+        const userId = {{ user_id }} ;
+        console.log("User Id from session:", userId);
+
+        const recommendedProducts = [
+            { id: 201, name: "고객님의 단골상품", product: "고급 세차", description: null,
+                style:
+                    "blue-dashed" },
+            { name: "차 관리 최적 상품", product: null, description: null, style: "blue-solid" },
+            { name: "이번 주의 추천 상품", product: null, description: null, style: "black-dashed" },
+            { name: "재구매율 최고 상품", product: null, description: null, style: "black-solid" }
+        ];
+
+        const products = [
+            { id: 101, product: "고급 세차", description: "진공청소기, 고수압 물세차, 거품솔 " +
+                    "대여, 폼건, " +
+                    "에어건" },
+            { id: 102, product: "물세차", description: "강함/보통" },
+            { id: 103, product: "기본 세차", description: "진공청소기, 보통 수압 물세차, 폼건" },
+            { id: 104, product: "내부 세차", description: "진공청소기" },
+            { id: 105, product: "옵션 선택", description: "전체 상품 중 선택" }
+        ];
+
+        let selectedProduct = null;
+        function loadRecommendedProducts() {
+            const container = document.getElementById("recommendedProducts");
+            recommendedProducts.forEach((item) => {
+                const productDiv = document.createElement("div");
+                productDiv.className = `product-item ${item.style}`;
+                productDiv.innerHTML = `<strong>${item.name}</strong>`;
+                productDiv.onclick = () => selectProduct(item.id);
+                container.appendChild(productDiv);
+            });
+        }
+
+        function loadProducts() {
+            const container = document.getElementById("productList");
+            products.forEach((item) => {
+                const productDiv = document.createElement("div");
+                productDiv.className = "product-item";
+                productDiv.innerHTML = `<strong>${item.product}</strong><br><span>${item.description}</span>`;
+                productDiv.onclick = () => selectProduct(item.id);
+                container.appendChild(productDiv);
+            });
+        }
+
+        function selectProduct(product) {
+            selectedProduct = product;
+            document.querySelectorAll(".product-item").forEach((item) => item.classList.remove("selected"));
+            event.currentTarget.classList.add("selected");
+        }
+
+        function confirmSelection() {
+            if (!selectedProduct) {
+                alert("상품을 선택해 주세요.");
+                return;
+            }
+            localStorage.setItem("userId", userId);
+            localStorage.setItem("selectedProductId", selectedProduct);
+
+        if (selectedProduct === 105) {
+                window.location.href = 'option_selection';
+            } else {
+                window.location.href = "end_service";
+            }
+        }
+
+        // 초기화
+        loadRecommendedProducts();
+        loadProducts();
+    </script>
+</body>
+</html>

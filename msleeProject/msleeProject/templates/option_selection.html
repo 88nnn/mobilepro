@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>옵션 선택</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <p class="guide-text">직접 조정이 가능합니다.</p>
+
+        <div id="productList" class="product-list">
+            <!-- Dynamic product items will be injected here -->
+        </div>
+
+        <button class="btn blue" onclick="confirmSelection()">선택 완료</button>
+    </div>
+    <script>
+          {#const recommendedProducts = localStorage.getItem('selectedProductId');#}
+
+            const Products = [
+            {product: "진공청소기: ", description: "분당 100원"},
+            {product: "보통 수압: ", description: "분당 400원"},
+            {product: "고수압: ", description: "분당 500원"},
+            {product: "에어건: ", description: "분당 100원"},
+            {product: "폼건: ", description: "분당 700원"},
+            {product: "거품솔 별도 대여: ", description: "분당 200원"}
+        ]
+        const productListElement = document.getElementById('productList');
+
+        function loadProducts() {
+            if (Products.length > 0) {
+                Products.forEach((item) => {
+                    const productItem = document.createElement('div');
+                    productItem.classList.add('product-item', item.style);
+                    productItem.innerHTML = `
+                        <strong>${item.product}</strong><br>
+                        ${item.product}: <span>${item.description}</span>
+                    `;
+                    productItem.onclick = () => selectProduct(item.product);
+                    productListElement.appendChild(productItem);
+                });
+            }
+        }
+
+        let selectedProduct = null;
+        function selectProduct(product) {
+            selectedProduct = product;
+            // 선택된 상품 표시
+            Array.from(document.querySelectorAll('.product-item')).forEach((item) => {
+                item.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
+
+        function confirmSelection() {
+            if (selectedProduct) {
+                // 선택된 상품 저장해 다음 페이지로 전송//필요에 따라 플라스크DB로도 전송
+                localStorage.setItem('selectedProduct', selectedProduct);
+                window.location.href = "end_service";
+            } else {
+                alert("상품을 선택해 주세요.");
+            }
+        }
+
+        // Initialize the product list on load
+        loadProducts();
+    </script>
+</body>
+</html>

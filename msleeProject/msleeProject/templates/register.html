@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+
+  <h2> 사용자 추가 </h2>
+  <form id="registerForm" action="{{ url_for('register') }}" method="post"
+        onsubmit="return validateForm()">
+    <div class="row g-3 align-items-center">
+      <div class="col-auto">
+        <label for="mail" class="col-form-label">e-mail</label>
+      </div>
+      <div class="col-auto">
+        <input type="email" id="mail" name="mail" class="form-control"
+               aria-describedby="emailhelp">
+      </div>
+      <div class="col-auto">
+    <span id="mailHelp" class="form-text">
+      이메일을 입력하세요
+    </span>
+      </div>
+
+      <div style="width: 100%; height: 10px;"></div>
+
+      <div class="row g-3 align-items-center">
+        <div class="col-auto">
+          <label for="registerPlate" class="col-form-label">번호판</label>
+        </div>
+        <div class="col-auto">
+          <input type="text" id="registerPlate" name="registerPlate"
+                 class="form-control"
+                 aria-describedby="PlateHelp">
+        </div>
+
+        <div class="col-auto">
+    <span id="registerPlateHelp" class="form-text">
+      차 번호를 입력하세요
+    </span>
+        </div>
+        <br>
+        <div class="row g-3 align-items-center">
+          <input type="submit" value="Register" class="btn btn-primary">
+        </div>
+      </div>
+  </form>
+
+  <script>
+      function validateForm() {
+          let email = document.getElementById("mail").value;
+          let registerPlate = document.getElementById("registerPlate").value;
+
+          if (email === "" || registerPlate === "") {
+              alert("이메일과 차 번호를 입력해주세요")
+              return false;
+          }
+          return true;
+      }
+  </script>
+
+
+{% endblock %}
+

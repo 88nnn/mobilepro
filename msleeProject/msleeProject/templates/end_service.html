@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>이용 종료</title>
+  <style>
+      .container {
+          text-align: center;
+          margin: 20px;
+      }
+
+      .summary {
+          font-size: 18px;
+          margin-bottom: 20px;
+      }
+
+      .btn {
+          margin-top: 20px;
+          padding: 10px 20px;
+          background-color: red;
+          color: white;
+          border: none;
+          cursor: pointer;
+      }
+  </style>
+</head>
+<body>
+<div class="container center">
+  <div class="summary" id="summary"></div>
+  <button class="btn" onclick="confirmEndService()">서비스 종료</button>
+</div>
+<div class="container center">
+  <button class="start-service-btn" onclick="confirmStartService()">이용 시작
+  </button>
+</div>
+
+<script>
+    // 예제: product_selection.html에서 구매한 상품 데이터를 전달받았다고 가정
+    {#const selectedProducts = [#}
+    {#    { user_id: 1, product_id: 101 },#}
+    {#    { user_id: 1, product_id: 102 }#}
+    {#];#}
+
+    // 로컬 스토리지에서 데이터 가져오기
+    const userId = localStorage.getItem("userId");
+    const productId = localStorage.getItem("selectedProductId");
+
+    const selectedProducts = {
+        user_id: userId,
+        product_id: productId
+    };
+
+    function displaySummary() {
+        const summaryDiv = document.getElementById("usage_summary");
+        summaryDiv.innerHTML = `선택된 상품 ID: ${productId}<br>사용자 ID: ${userId}`;
+    }
+
+
+    function confirmStartService() {
+        if (confirm("구매 정보가 저장되었습니다!")) {
+            // 구매 데이터를 서버로 전송
+            {#selectedProducts.forEach(product => {#}
+            fetch('http://localhost:8000/api/save_purchase', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(selectedProducts)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.message || data.error);
+                })
+                .catch(error => {
+                    console.error('오류가 발생했습니다:', error);
+                });
+  //      });
+
+            //alert("구매 정보가 저장되었습니다!");
+        }
+    }
+</script>
+
+<div class="container center">
+  <button class="end-service-btn" onclick="confirmEndService()">이용 종료</button>
+</div>
+
+<script>
+    function confirmEndService() {
+        if (confirm("정말로 이용을 종료하시겠습니까? \n세차를 완전히 마치셨다면 '예'를 선택해 주세요.")) {
+            window.location.href = "usage_summary";
+        }
+    }
+</script>
+</body>
+</html>

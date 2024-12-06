@@ -1,0 +1,96 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>번호판 인식</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+      }
+
+      video {
+          width: 100%;
+          max-width: 640px;
+          display: block;
+          margin: 0 auto;
+      }
+
+      .button-container {
+          text-align: center;
+          margin-top: 20px;
+      }
+
+      button {
+          padding: 10px 20px;
+          font-size: 16px;
+          margin: 10px;
+          cursor: pointer;
+      }
+
+      .hidden {
+          display: none;
+      }
+  </style>
+</head>
+<body>
+<h1 style="text-align: center;">번호판 인식</h1>
+<div style="text-align: center;">
+  <img src="{{ url_for('video_feed') }}" style="width: 100%; max-width: 640px;">
+</div>
+
+<div class="button-container">
+  <button id="recognizeBtn" onclick="startRecognition()">번호판 인식</button>
+  <button id="retryBtn" class="hidden" onclick="startRecognition()">재시도</button>
+</div>
+
+<div id="message" style="text-align: center;"></div>
+
+<div class="button-container">
+  <button onclick="window.location.href='/contact'">고객센터</button>
+</div>
+
+<script>
+    function startRecognition() {
+        // 인식 버튼 숨기기, 재시도 버튼 보이기
+        document.getElementById('recognizeBtn').classList.add('hidden');
+        document.getElementById('retryBtn').classList.remove('hidden');
+        document.getElementById('message').textContent = '번호판을 인식 중입니다...';
+
+        fetch('/recognize', {
+            method: 'POST',
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result === 'success') {
+                    document.getElementById('message').textContent = '인식된 번호판: ' + data.plate;
+
+                    //     ##################################################
+                    //        서버로 번호판 정보 전송
+                    {#fetch('/compare_plate', {#}
+                    {#    method: 'POST',#}
+                    {#    headers: {#}
+                    {#        'Content-Type': 'application/json'#}
+                    {#    },#}
+                    {#    body: JSON.stringify({plate: data.plate})#}
+
+                    {#.then(() => {#}
+                    // 3초 후에 다음 페이지로 이동
+                    setTimeout(() => {
+                        window.location.href = '/product_selection';
+                    }, 3000);
+
+                    //        ######################################################
+                } else {
+                    document.getElementById('message').textContent = '번호판 인식 실패. 재시도 해주세요.';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('message').textContent = '인식 오류 발생. 다시 시도해주세요.';
+            });
+    }
+</script>
+</body>
+</html>
+

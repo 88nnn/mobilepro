@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  <body onload="javascript:onload()">
+  잠시 후 세차장 페이지로 이동합니다.
+
+  <script language="javascript">
+      function onload() {
+          setTimeout('go_car_wash_select()', 3000)
+      }
+
+      function go_car_wash_select() {
+          location.href = "/car_wash_select";
+      }
+  </script>
+  </body>
+{% endblock %}
